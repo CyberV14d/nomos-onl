@@ -1,0 +1,11 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+werkzeug
+requests
+beautifulsoup4
+mistralai
+pinecone-client
+python-dotenv
+xhtml2pdf
+gunicorn
