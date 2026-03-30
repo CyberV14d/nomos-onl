@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing: {{ project.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root { --border: #e1e1e0; --bg: #f7f7f5; --accent: #2383e2; }
+
+        /* Layout Base */
+        body { font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
+
+        /* Main Writing Area */
+        .main-content { flex: 1; display: flex; flex-direction: column; background: white; min-width: 0; }
+
+        .nav-bar {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-info { display: flex; align-items: center; overflow: hidden; }
+        .nav-info strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+
+        .nav-actions { display: flex; align-items: center; gap: 5px; }
+
+        .editor-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; justify-content: center; }
+
+        /* Notion-style centered editor width */
+        #editor-wrapper { width: 100%; max-width: 800px; height: 100%; }
+        #editor { border: none !important; font-size: 17px; height: auto; min-height: 100%; }
+
+        /* Sidebar Chat */
+        .sidebar {
+            width: 350px;
+            border-left: 1px solid var(--border);
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header { padding: 15px; font-weight: 600; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+        .chat-history { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-bubble { background: white; padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; line-height: 1.5; }
+        .chat-bubble.user { background: #efefed; align-self: flex-end; }
+
+        .add-btn { margin-top: 8px; font-size: 11px; background: var(--accent); color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
+
+        .sidebar-input { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+        input#aiInput { flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; outline: none; font-size: 14px; }
+
+        .btn-tool { background: white; border: 1px solid var(--border); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; }
+
+        /* Mobile Toggle UI */
+        #mobile-ai-toggle { display: none; }
+
+        /* Tablet & Mobile Adjustments */
+        @media (max-width: 900px) {
+            .sidebar {
+                position: fixed;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 1000;
+                transform: translateX(100%); /* Hidden by default */
+                box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            }
+            .sidebar.active { transform: translateX(0); }
+            #mobile-ai-toggle { display: block; background: var(--accent); color: white; border: none; }
+            .editor-container { padding: 10px; }
+        }
+
+        @media (max-width: 600px) {
+            .nav-actions .btn-tool span { display: none; } /* Hide text on small buttons */
+            .nav-actions .btn-tool:after { content: attr(data-icon); }
+            .sidebar { width: 100%; }
+        }
+
+        /* Editor Typography */
+        .ql-editor p { margin-bottom: 1em; }
+        .ql-editor strong { font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="main-content">
+        <div class="nav-bar">
+            <div class="nav-info">
+                <a href="/project/{{ project.project_uuid }}" style="text-decoration: none; color: #9b9a97;">←</a>
+                <strong style="margin-left:10px;">{{ project.name }}</strong>
+            </div>
+            <div class="nav-actions">
+                <span id="saveStatus" style="font-size:10px; color:gray; margin-right:5px;">Saved</span>
+                <button onclick="newPage()" class="btn-tool" data-icon="📄"><span>📄 New Page</span></button>
+                <button onclick="exportToPDF()" class="btn-tool" data-icon="📥"><span>📥 PDF</span></button>
+                <button id="mobile-ai-toggle" class="btn-tool" onclick="toggleSidebar()">AI</button>
+            </div>
+        </div>
+        <div class="editor-container">
+            <div id="editor-wrapper">
+                <div id="editor">{{ project.draft_content | safe }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span>AI Writing Assistant</span>
+            <button onclick="toggleSidebar()" class="btn-tool" id="close-sidebar" style="display:none;">Close</button>
+        </div>
+        <div id="chatHistory" class="chat-history">
+            <div class="chat-bubble">How can I help you with your research today?</div>
+        </div>
+        <div class="sidebar-input">
+            <input type="text" id="aiInput" placeholder="Ask AI..." onkeypress="if(event.key==='Enter') askAI()">
+            <button onclick="askAI()" style="background:var(--accent); color:white; border:none; border-radius:4px; padding:0 12px; cursor:pointer;">Ask</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        // Sidebar Toggle Logic
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+            document.getElementById('close-sidebar').style.display = sidebar.classList.contains('active') ? 'block' : 'none';
+        }
+
+        // Initialize Quill
+        var quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    ['blockquote'],
+                    [{list:'ordered'}, {list:'bullet'}]
+                ]
+            }
+        });
+
+        const p_uuid = "{{ project.project_uuid }}";
+
+        // Auto-save logic
+        let timeout;
+        quill.on('text-change', () => {
+            document.getElementById('saveStatus').innerText = "Saving...";
+            clearTimeout(timeout);
+            timeout = setTimeout(async () => {
+                await fetch(`/project/${p_uuid}/save`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ content: quill.root.innerHTML })
+                });
+                document.getElementById('saveStatus').innerText = "Saved";
+            }, 1500);
+        });
+
+        function exportToPDF() {
+            const element = document.querySelector('.ql-editor');
+            const projectName = "{{ project.name }}";
+            const opt = {
+                margin: 1,
+                filename: `${projectName}_Draft.pdf`,
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        async function newPage() {
+            if(confirm("Start a new page?")) {
+                const res = await fetch(`/project/${p_uuid}/new_page`, { method: 'POST' });
+                if(res.ok) { quill.setContents([]); }
+            }
+        }
+
+        async function askAI() {
+            const input = document.getElementById('aiInput');
+            const history = document.getElementById('chatHistory');
+            const instruction = input.value;
+            if(!instruction) return;
+
+            history.innerHTML += `<div class="chat-bubble user">${instruction}</div>`;
+            input.value = "";
+            history.scrollTop = history.scrollHeight;
+
+            const res = await fetch(`/ai_assist/${p_uuid}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ instruction, content: quill.getText() })
+            });
+            const data = await res.json();
+
+            const formattedHtml = marked.parse(data.suggestion);
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble ai';
+            bubble.innerHTML = `<div>${formattedHtml}</div><button class="add-btn">+ Add to Page</button>`;
+            bubble.dataset.rawMarkdown = data.suggestion;
+
+            history.appendChild(bubble);
+            history.scrollTop = history.scrollHeight;
+
+            bubble.querySelector('.add-btn').addEventListener('click', function() {
+                const htmlToInsert = marked.parse(bubble.dataset.rawMarkdown);
+                const range = quill.getSelection() || { index: quill.getLength() };
+                quill.clipboard.dangerouslyPasteHTML(range.index, `<div>${htmlToInsert}</div>`);
+
+                // On mobile, close sidebar after adding content
+                if(window.innerWidth <= 900) toggleSidebar();
+            });
+        }
+    </script>
+</body>
+</html>

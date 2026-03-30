@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log in - Nomos Analyst</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f5;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh; /* Centers the box vertically on any screen */
+        }
+
+        .auth-box {
+            width: 90%; /* On mobile, take up most of the width */
+            max-width: 360px; /* On desktop, stay compact */
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            border: 1px solid #e1e1e0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 24px;
+            color: #37352f;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #e1e1e0;
+            border-radius: 4px;
+            font-size: 16px; /* 16px prevents iOS from zooming in automatically on focus */
+            box-sizing: border-box; /* Ensures padding doesn't break the width */
+            outline: none;
+        }
+
+        .auth-input:focus {
+            border-color: #2383e2;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #2383e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #1a6ab3;
+        }
+
+        .footer-text {
+            margin-top: 24px;
+            font-size: 14px;
+            color: #73726e;
+        }
+
+        .footer-text a {
+            color: #2383e2;
+            text-decoration: none;
+        }
+
+        /* Small adjustment for very short screens */
+        @media (max-height: 500px) {
+            .auth-box { margin: 20px auto; }
+            body { align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-box">
+        <h1>Log in</h1>
+        <form method="POST">
+            <input type="email" name="email" class="auth-input" placeholder="Email address" required>
+            <input type="password" name="password" class="auth-input" placeholder="Password" required>
+            <button type="submit">Continue</button>
+        </form>
+        <p class="footer-text">
+            New here? <a href="/signup">Create an account</a>
+        </p>
+    </div>
+</body>
+</html>

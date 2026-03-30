@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign up - Nomos Analyst</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Changed to min-height for better scrolling on short mobile screens */
+            min-height: 100vh;
+            margin: 0;
+            background-color: #ffffff;
+            font-family: 'Inter', sans-serif;
+        }
+        .auth-container {
+            width: 90%; /* Provides spacing on mobile */
+            max-width: 350px;
+            padding: 40px 20px; /* Increased vertical padding */
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .auth-logo {
+            font-size: 48px; /* Slightly larger for emphasis */
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: clamp(20px, 6vw, 24px); /* Fluid font size */
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            color: #37352f;
+        }
+        p {
+            font-size: 14px;
+            color: #73726e;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #9b9a97;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e1e1e0;
+            border-radius: 4px;
+            /* 16px font size prevents mobile browsers from zooming in automatically */
+            font-size: 16px;
+            background: #f7f7f5;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+            -webkit-appearance: none; /* Removes shadow on iOS */
+        }
+
+        /* On larger screens, we can drop the font back to 14px if preferred */
+        @media (min-width: 600px) {
+            input { font-size: 14px; }
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2383e2;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(35, 131, 226, 0.1);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #2383e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s ease;
+        }
+        button:hover {
+            background: #0070df;
+        }
+        .footer-link {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #73726e;
+        }
+        .footer-link a {
+            color: #2383e2;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Adjustments for very small or landscape mobile devices */
+        @media (max-height: 500px) {
+            body { align-items: flex-start; }
+            .auth-container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-logo">📝</div>
+        <h1>Create an account</h1>
+        <p>Start interpreting web sources privately.</p>
+
+        <form action="/signup" method="POST">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email..." required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Create a password..." required>
+            </div>
+            <button type="submit">Sign up</button>
+        </form>
+
+        <div class="footer-link">
+            Already have an account? <a href="/login">Log in</a>
+        </div>
+    </div>
+</body>
+</html>
