@@ -7,5 +7,4 @@ beautifulsoup4
 mistralai
 pinecone-client
 python-dotenv
-xhtml2pdf
 gunicorn
