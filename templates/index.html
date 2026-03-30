@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nomos Analyst</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --notion-text: #37352f;
+            --notion-bg: #ffffff;
+            --notion-border: #e1e1e0;
+            --notion-blue: #2383e2;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--notion-text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        .notion-page {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px; /* Padding for mobile breathing room */
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            color: #9b9a97;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+
+        /* Responsive Input Blocks */
+        .input-block {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Stack inputs on small screens */
+        @media (max-width: 600px) {
+            .input-block {
+                flex-direction: column;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--notion-border);
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--notion-blue);
+        }
+
+        button {
+            padding: 10px 18px;
+            background: var(--notion-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .block-label {
+            font-size: 13px;
+            color: #73726e;
+            margin: 10px 0;
+            min-height: 20px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--notion-border);
+            margin: 40px 0;
+        }
+
+        .content-block {
+            background: #f7f7f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .hidden { display: none; }
+
+        /* Typography for Chat */
+        #chatHistory p {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="notion-page">
+        <nav class="breadcrumb">Workspace / <b>Private Session</b></nav>
+        <h1>🌐 Source Chat</h1>
+
+        <div class="input-block">
+            <input type="text" id="urlInput" placeholder="Paste link to extract text...">
+            <button onclick="ingestUrl()" id="ingestBtn">Load Content</button>
+        </div>
+
+        <div id="status" class="block-label"></div>
+
+        <div id="chatArea" class="hidden">
+            <div class="divider"></div>
+            <div id="chatHistory" class="content-block"></div>
+            <div class="input-block">
+                <input type="text" id="chatInput" placeholder="Ask a question about this page..." onkeypress="if(event.key==='Enter') sendChat()">
+                <button onclick="sendChat()">Ask</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ... (Your existing JavaScript remains the same) ...
+        async function ingestUrl() {
+            const url = document.getElementById('urlInput').value;
+            const status = document.getElementById('status');
+            if(!url) return;
+
+            status.innerText = "Mistral is cleaning the text...";
+
+            const res = await fetch('/ingest', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ url })
+            });
+            const data = await res.json();
+
+            if (data.status) {
+                status.innerText = "✅ Text extracted and saved.";
+                document.getElementById('chatArea').classList.remove('hidden');
+            } else {
+                status.innerText = "❌ Error: " + data.error;
+            }
+        }
+
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const history = document.getElementById('chatHistory');
+            const msg = input.value;
+            if(!msg) return;
+
+            history.innerHTML += `<p><b>You:</b> ${msg}</p>`;
+            input.value = "";
+            history.scrollTop = history.scrollHeight;
+
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ message: msg })
+            });
+            const data = await res.json();
+
+            if (data.reply) {
+                history.innerHTML += `<p><b>Mistral:</b> ${data.reply}</p>`;
+                history.scrollTop = history.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
