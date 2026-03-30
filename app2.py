@@ -9,7 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from mistralai.client import Mistral
 from pinecone import Pinecone
 from dotenv import load_dotenv
-from xhtml2pdf import pisa
+
 from io import BytesIO
 import json
 
