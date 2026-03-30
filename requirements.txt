@@ -5,6 +5,6 @@ werkzeug
 requests
 beautifulsoup4
 mistralai
-pinecone-client
+pinecode
 python-dotenv
 gunicorn
